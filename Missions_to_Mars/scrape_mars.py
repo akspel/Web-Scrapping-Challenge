@@ -1,9 +1,8 @@
 from splinter import Browser
 from bs4 import BeautifulSoup
-import pandas as pandas
-import requests
 import time
-
+import pandas as pd 
+import requests
 
 def init_browser():
     executable_path = {'executable_path': "C:/Users/akspe/Downloads/chromedriver"}
@@ -13,102 +12,71 @@ def scrape():
     browser = init_browser()
     mars_data = {}
 
-
-# Mars News
-url = 'https://mars.nasa.gov/news/'
-response = requests.get(url)
-
-soup = BeautifulSoup(response.text, 'html.parser')
-
-news_title = soup.find('div', class_="content_title").find('a').text 
-news_p = soup.find('div', class_="rollover_description_inner").text 
-
-mars_data['news_title'] = news_title
-mars_data['news_p'] = news_p
-
-# JPL Mars Space Images
-url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
-browser.visit(url)
-
-html = browser.html
-
-soup = BeautifulSoup(html, 'html.parser')
-
-base_url = (url.split('/spaceimages'))[0]
-
-description_page = soup.find_all('a', class_='button fancybox')[0]['data-link']
-
-description_url = base_url + description_page
-
-browser.visit(description_url)
-
-image = browser.html
-
-soup = BeautifulSoup(image, 'html.parser')
-
-img = soup.find('img', class_="main_image")['src']
-
-featured_image_url = base_url +img
-
-mars_data['featured_image_url'] = featured_image_url
-
-# Mars facts
-url = 'https://space-facts.com/mars/'
-tables = pd.read_html(url)
-
-df = tables[0]
-
-df.columns = ['Description', 'Value']
-
-df.set_index('Description', inplace=True)
-
-html_table = df.to_html()
-
-html_table.replace('/n', '')
-
-mars_data['html_table'] = html_table
-
-
-# Mars hemisphere
-url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
-browser.visit(url)
-
-html = browser.html
-
-soup = BeautifulSoup(html, 'html.parser')
-
-hemisphere_image_urls = []
-
-base_url(url.split('/search'))[0]
-
-hemispheres = soup.find_all('div', class_='description')
-
-for hemisphere in hemispheres:
-    hemisphere_info = {}
-
-    hem_title = hemisphere.find('h3').text 
-
-    hemisphere_info['title'] = hem_title.split('Enhanced')[0]
-
-    hem_route = hemisphere.find('a', class_='itemLink product-item')['href']
-
-    hemisphere_link = base_url + hem_route
-
-    browser.visit(hemisphere_link)
+    url_news = 'https://mars.nasa.gov/news/'
+    browser.visit(url_news)
 
     html = browser.html
+    soup_news = BeautifulSoup(html, 'html.parser')
 
-    soup = BeautifulSoup(html, 'html.parser')
+    news_title = news_one.find('div', class_='content_title').get_text()
+    news_p = news_one.find('div', class_='rollover_description_inner').get_text()
 
-    image_url = soup.find9'div', class_='downloads').find('ul').find('li').find('a')['href']
+    url_img = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
+    browser.visit(url_img)
 
-    hemisphere_info['img_url'] = image_url
-    hemisphere_image_urls.append(hemisphere_info)
+    full_image_button = browser.find_by_id("full_image")
+    full_image_button.click()
+    more_info_button = browser.links.find_by_partial_text("more info")
+    more_info_button.click()
 
-    mars_data["image_urls"] = hemisphere_image_urls
+    html = browser.html
+    soup_div = BeautifulSoup(html, 'html.parser')
 
-browser.quit()
+    image_path = soup_div.select_one("figure.lede a img").get("src")
+    photo_link = "https://www.jpl.nasa.gov/" + image_path
 
-return mars_data
 
-   
+    url_facts = 'https://space-facts.com/mars/'
+    tables = pd.read_html(url_facts)
+
+    facts_df = tables[0]
+
+    html_table = facts_df.to_html()
+
+
+    USGS_url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    browser.visit(USGS_url)
+
+    USGS_html = browser.html
+    soup_USGS = BeautifulSoup(USGS_html, 'html.parser')
+    se_url = (USGS_url.split('/search'))[0]
+
+    hemispheres = soup_hemisphere.find_all('div', class_='description')
+
+    for hemisphere in hemispheres:
+        hemisphere_info = {}
+        hemisphere_title = hemisphere.find('h3').text
+    
+        hemisphere_info['title'] = hemisphere_title.split('Enhanced')[0]
+    
+        hemisphere_route = hemisphere.find('a', class_='itemLink product-item')['href']
+    
+        hemisphere_link = base_url + hemisphere_route
+        browser.visit(hemisphere_link)
+        html = browser.html
+        soup_hemisphere = BeautifulSoup(html, 'html.parser')
+    
+        image_url = soup_hemisphere.find('div', class_='downloads').find('ul').find('li').find('a')['href']
+    
+        hemisphere_info['img_url'] = image_url
+    
+        hemisphere_image_urls.append(hemisphere_info)
+
+    mars_data = {
+        "news_title": news_title,
+        "news_p": news_p,
+        "photo_link": photo,
+        "html_table": table,
+        "hemisphere_image_urls": hemisphere_image_urls
+    }
+    return mars_data      

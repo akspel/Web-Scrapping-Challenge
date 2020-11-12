@@ -7,14 +7,14 @@ app = Flask(__name__)
 
 mongo = PyMongo(app, uri="mongodb://localhost:27017/mars_mission")
 
-@app.route("/scrape")
-def index():
+@app.route("/scrape1")
+def index1():
    mars_info = mongo.db.collection.find_one()
 
    return render_template('index.html', mars_info=mars_info)
 
-@app.route('/scrape')
-def index():
+@app.route("/scrape2")
+def index2():
    mars_data = scrape_mars.scrape()
 
    mongo.db.collection.update({}, mars_data, upsert=True)

@@ -49,7 +49,7 @@ def scrape():
 
     USGS_html = browser.html
     soup_USGS = BeautifulSoup(USGS_html, 'html.parser')
-    se_url = (USGS_url.split('/search'))[0]
+    hemispherese_url = (USGS_url.split('/search'))[0]
 
     hemispheres = soup_hemisphere.find_all('div', class_='description')
 
